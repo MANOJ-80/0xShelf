@@ -1,5 +1,5 @@
 {
-  "name": "book-store-backend",
+  "name": "0xshelf-backend",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -7,8 +7,8 @@
     "start:dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "iamroot",
-  "license": "ISC",
+  "author": "MANOJ-80",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
