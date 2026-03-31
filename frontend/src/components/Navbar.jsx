@@ -6,6 +6,8 @@ import { FaUserAlt } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { useAuth } from "../context/AuthContext";
 import avatarImg from "../assets/avatar.png";
+import { useFetchAllBooksQuery } from "../redux/features/books/booksApi";
+import { getImgUrl } from "../utils/getImgUrl";
 
 const navigation = [
   { name: "Dashboard", href: "/user-dashboard" },
@@ -17,10 +19,19 @@ const navigation = [
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef(null);
+  
   const cartItems = useSelector(state => state.cart.cartItems);
   const { currentUser, logout } = useAuth();
   const token = localStorage.getItem('token');
+  
+  const { data: books = [] } = useFetchAllBooksQuery();
+
+  // Filter books based on search query
+  const filteredBooks = books.filter(book => 
+    book.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -56,11 +67,42 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder="Search here"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                   className="w-full py-2 pl-10 pr-4 bg-gray-100 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
                 />
               </div>
+              
+              {/* Search Dropdown */}
+              {isSearchFocused && searchQuery && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto z-50 border border-gray-100">
+                   {filteredBooks.slice(0, 5).map(book => (
+                      <Link 
+                        to={`/books/${book._id}`} 
+                        key={book._id} 
+                        className="block px-4 py-2 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-colors text-sm"
+                        onClick={() => { setSearchQuery(''); setIsSearchFocused(false); }}
+                      >
+                         <div className="flex items-center gap-2">
+                           <img src={getImgUrl(book.coverImage)} alt="" className="w-8 h-8 object-cover rounded shadow-sm" onError={(e) => { e.target.onerror = null; e.target.src = '/fav-icon.png'; }} />
+                           <span className="truncate">{book.title}</span>
+                         </div>
+                      </Link>
+                   ))}
+                   {filteredBooks.length > 5 && (
+                      <div className="px-4 py-2 text-xs text-center text-gray-500 bg-gray-50 border-t border-gray-100 italic">
+                         Showing top 5 matches...
+                      </div>
+                   )}
+                   {filteredBooks.length === 0 && (
+                      <div className="p-3 text-sm text-center text-gray-500">
+                        No books found.
+                      </div>
+                   )}
+                </div>
+              )}
             </div>
           </div>
 
